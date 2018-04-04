@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.ComponentModel;
 
 namespace Minebeginner
 {
@@ -157,11 +156,9 @@ namespace Minebeginner
             Cells = new List<Cell>();
         }
     }
-    public class Cell : INotifyPropertyChanged
+    public class Cell
     {
         // http://blog.livedoor.jp/morituri/archives/54652766.html
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public int ColumnID { get; set; }
         public int RowID { get; set; }
         public string ID { get; set; }
@@ -192,13 +189,11 @@ namespace Minebeginner
             {
                 View = "";
                 HasFlag = false;
-                OnPropertyChanged("View");
             }
             else
             {
                 View = "■";
                 HasFlag = true;
-                OnPropertyChanged("View");
             }
         }
 
@@ -218,16 +213,7 @@ namespace Minebeginner
             {
                 View = AroundBombs.ToString();
             }
-            OnPropertyChanged("View");
         }
 
-        protected void OnPropertyChanged(string name)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(name));
-            }
-        }
     }
 }

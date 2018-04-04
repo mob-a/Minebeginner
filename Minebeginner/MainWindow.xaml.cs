@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
 
+
 namespace Minebeginner
 {
     /// <summary>
@@ -27,7 +28,7 @@ namespace Minebeginner
         public MainWindow()
         {
             InitializeComponent();
-            InitializeBoard(15,20, 10);
+            InitializeBoard(15, 20, 10);
         }
 
         void InitializeBoard(int column_num, int row_num, int bomb_num)
@@ -36,8 +37,8 @@ namespace Minebeginner
             mineboard = new MineBoard(column_num, row_num, bomb_num);
             datalistitems.DataContext = mineboard.Columns;
             closed_cell_counter.Text = mineboard.ClosedSafeCellNum.ToString();
-            this.Width =column_num * 20 + 36;
-            this.Height= row_num * 20 + 102;
+            this.Width = column_num * 20 + 36;
+            this.Height = row_num * 20 + 102;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -58,6 +59,7 @@ namespace Minebeginner
                 end = true;
                 var window = new BombMessageWindow();
                 window.Show();
+                button.GetBindingExpression(Button.ContentProperty).UpdateTarget();
             }
             else if (result == OpenResult.SUCCESS)
             {
@@ -68,9 +70,38 @@ namespace Minebeginner
                     cwindow.Show();
                     end = true;
                 }
+                foreach (Button btn in DescendantButtons(datalistitems))
+                {
+                    // [TODO] 全部updateするのはかなり効率悪い
+                    btn.GetBindingExpression(Button.ContentProperty).UpdateTarget();
+                }
             }
         }
 
+        public static List<Button> DescendantButtons(DependencyObject obj)
+        {
+            //http://blog.xin9le.net/entry/2013/10/29/222336
+            var l = new List<Button>();
+            var count = VisualTreeHelper.GetChildrenCount(obj);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(obj, i);
+                if (child == null)
+                {
+                    continue;
+                }
+                if (child is Button)
+                {
+                    l.Add((Button)child);
+                }
+                var child_count = VisualTreeHelper.GetChildrenCount(child);
+                if (child_count > 0)
+                {
+                    l = l.Concat(DescendantButtons(child)).ToList();
+                }
+            }
+            return l;
+        }
 
         private void Button_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -86,11 +117,12 @@ namespace Minebeginner
             var row_id = columnid_rowid[1];
 
             mineboard.ReverseFlag(column_id, row_id);
+            button.GetBindingExpression(Button.ContentProperty).UpdateTarget();
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            InitializeBoard(5,4,3);
+            InitializeBoard(5, 4, 3);
         }
     }
 
