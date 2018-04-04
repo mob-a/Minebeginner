@@ -1,12 +1,12 @@
-﻿<Window x:Class="Minebeginner.BombMessageWindow"
+﻿<Window x:Class="Minebeginner.ClearMessageWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Minebeginner"
         mc:Ignorable="d"
-        Title="Bomb!" Height="100" Width="200">
+        Title="Clear!" Height="100" Width="200">
     <Grid>
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30">Bomb!</TextBlock>
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30">Clear!</TextBlock>
     </Grid>
 </Window>
