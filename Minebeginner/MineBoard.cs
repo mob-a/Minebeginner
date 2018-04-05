@@ -66,16 +66,28 @@ namespace Minebeginner
         {
             return Columns[column_id].Cells[row_id];
         }
-
+        public void ReverseFlag(int column_id, int row_id)
+        {
+            var cell = GetCell(column_id, row_id);
+            if (cell.HasFlag)
+            {
+                cell.HasFlag = false;
+            }
+            else
+            {
+                cell.HasFlag = true;
+            }
+        }
         public OpenResult Open(int column_id, int row_id)
         {
             var cell = GetCell(column_id, row_id);
-            if (cell.HasFlag || cell.Opened)
+            //  if (cell.HasFlag || cell.Opened)
+            if (cell.Opened)
             {
                 return OpenResult.CANNOTOPEN;
             }
+            cell.Opened = true;
 
-            cell.Open();
             if (cell.HasBomb)
             {
                 return OpenResult.BOMB;
@@ -112,14 +124,7 @@ namespace Minebeginner
                 return OpenResult.SUCCESS;
             }
         }
-        public void ReverseFlag(int column_id, int row_id)
-        {
-            var cell = GetCell(column_id, row_id);
-            if (!cell.Opened)
-            {
-                cell.ReverseFlag();
-            }
-        }
+
         public int GetAroundBombs(int column_id, int row_id)
         {
             int num = 0;
@@ -164,7 +169,6 @@ namespace Minebeginner
         public string ID { get; set; }
         public Boolean HasBomb { get; set; }
         public Boolean Opened { get; set; }
-        public string View { get; set; }
         public int AroundBombs { get; set; }
         public Boolean HasFlag { get; set; }
         public Cell(int column_id, int row_id, Boolean has_bomb)
@@ -175,45 +179,7 @@ namespace Minebeginner
             ID = ColumnID + "/" + RowID;
             Opened = false;
             AroundBombs = -1;
-            View = "";
             HasFlag = false;
         }
-        public void ReverseFlag()
-        {
-            if (Opened)
-            {
-                return;
-            }
-
-            if (HasFlag)
-            {
-                View = "";
-                HasFlag = false;
-            }
-            else
-            {
-                View = "■";
-                HasFlag = true;
-            }
-        }
-
-        public void Open()
-        {
-            if (Opened)
-            {
-                return;
-            }
-            Opened = true;
-            if (HasBomb)
-            {
-                View = "★";
-
-            }
-            else
-            {
-                View = AroundBombs.ToString();
-            }
-        }
-
     }
 }

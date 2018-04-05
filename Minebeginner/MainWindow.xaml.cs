@@ -17,6 +17,12 @@ using System.ComponentModel;
 
 namespace Minebeginner
 {
+    class CellPoint
+    {
+        public int ColumnID { get; set; }
+        public int RowID { get; set; }
+    }
+
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>
@@ -24,42 +30,53 @@ namespace Minebeginner
     {
         private MineBoard mineboard;
         private Boolean end;
-
         public MainWindow()
         {
             InitializeComponent();
-            InitializeBoard(15, 20, 10);
+            InitializeBoard();
         }
 
-        void InitializeBoard(int column_num, int row_num, int bomb_num)
+        void InitializeBoard()
+        {
+            var level = ((ComboBoxItem)level_selection.SelectedItem).Content.ToString();
+            if (level.Equals("HIGH"))
+            {
+                InitializeBoardBySize(20, 25, 50);
+            }
+            else
+            {
+                InitializeBoardBySize(15, 20, 20);
+            }
+        }
+        void InitializeBoardBySize(int column_num, int row_num, int bomb_num)
         {
             end = false;
             mineboard = new MineBoard(column_num, row_num, bomb_num);
             datalistitems.DataContext = mineboard.Columns;
             closed_cell_counter.Text = mineboard.ClosedSafeCellNum.ToString();
             this.Width = column_num * 20 + 36;
-            this.Height = row_num * 20 + 102;
+            this.Height = row_num * 20 + 108;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+
+            System.Windows.Input.Keyboard.ClearFocus();
             if (end)
             {
                 return;
             }
             var button = (Button)sender;
-            var tag = button.Tag;
-            var columnid_rowid = tag.ToString().Split('/').Select(numstr => int.Parse(numstr)).ToArray();
-
-            var column_id = columnid_rowid[0];
-            var row_id = columnid_rowid[1];
-            var result = mineboard.Open(column_id, row_id);
+            var cell_point = GetCellPoint(button);
+            var result = mineboard.Open(cell_point.ColumnID, cell_point.RowID);
             if (result == OpenResult.BOMB)
             {
                 end = true;
+
+                // [TODO]              button.GetBindingExpression(Button.ContentProperty).UpdateTarget();
+                button.Content = "★";
                 var window = new BombMessageWindow();
                 window.Show();
-                button.GetBindingExpression(Button.ContentProperty).UpdateTarget();
             }
             else if (result == OpenResult.SUCCESS)
             {
@@ -72,8 +89,16 @@ namespace Minebeginner
                 }
                 foreach (Button btn in DescendantButtons(datalistitems))
                 {
-                    // [TODO] 全部updateするのはかなり効率悪い
-                    btn.GetBindingExpression(Button.ContentProperty).UpdateTarget();
+                    if (btn.Style == this.Resources["ClosedCellButtonStyle"])
+                    {
+                        var cp = GetCellPoint(btn);
+                        var cell = mineboard.GetCell(cp.ColumnID, cp.RowID);
+                        if (cell.Opened)
+                        {
+                            btn.Style = (Style)this.Resources["OpenedCellButtonStyle"];
+                            btn.Content = cell.AroundBombs <= 0 ? "" : cell.AroundBombs.ToString();
+                        }
+                    }
                 }
             }
         }
@@ -110,19 +135,40 @@ namespace Minebeginner
                 return;
             }
             var button = (Button)sender;
-            var tag = button.Tag;
-            var columnid_rowid = tag.ToString().Split('/').Select(numstr => int.Parse(numstr)).ToArray();
+            var cp = GetCellPoint(button);
+            mineboard.ReverseFlag(cp.ColumnID, cp.RowID);
 
-            var column_id = columnid_rowid[0];
-            var row_id = columnid_rowid[1];
-
-            mineboard.ReverseFlag(column_id, row_id);
-            button.GetBindingExpression(Button.ContentProperty).UpdateTarget();
+            var cell = mineboard.GetCell(cp.ColumnID, cp.RowID);
+            if (!cell.Opened)
+            {
+                if (cell.HasFlag)
+                {
+                    button.Content = "■";
+                }
+                else
+                {
+                    button.Content = "";
+                }
+            }
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            InitializeBoard(5, 4, 3);
+            InitializeBoard();
+        }
+
+        private CellPoint GetCellPoint(Button btn)
+        {
+            var tag = btn.Tag;
+            int[] columnid_rowid = tag.ToString().Split('/').Select(numstr => int.Parse(numstr)).ToArray();
+
+            int column_id = columnid_rowid[0];
+            int row_id = columnid_rowid[1];
+            return new CellPoint
+            {
+                ColumnID = column_id,
+                RowID = row_id
+            };
         }
     }
 
