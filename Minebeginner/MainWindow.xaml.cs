@@ -1,19 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.ComponentModel;
-
 
 namespace Minebeginner
 {
@@ -39,13 +31,13 @@ namespace Minebeginner
         void InitializeBoard()
         {
             var level = ((ComboBoxItem)level_selection.SelectedItem).Content.ToString();
-            if (level.Equals("HIGH"))
+            if (level.Equals("Level:HIGH"))
             {
-                InitializeBoardBySize(20, 25, 50);
+                InitializeBoardBySize(20, 25, 70);
             }
             else
             {
-                InitializeBoardBySize(15, 20, 20);
+                InitializeBoardBySize(10, 15, 12);
             }
         }
         void InitializeBoardBySize(int column_num, int row_num, int bomb_num)
@@ -54,27 +46,40 @@ namespace Minebeginner
             mineboard = new MineBoard(column_num, row_num, bomb_num);
             datalistitems.DataContext = mineboard.Columns;
             closed_cell_counter.Text = mineboard.ClosedSafeCellNum.ToString();
-            this.Width = column_num * 20 + 36;
-            this.Height = row_num * 20 + 108;
+            this.Width = column_num * 21 + 37;
+            this.Height = row_num * 21 + 101;
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ResetCellChild(StackPanel cell_elem, UIElement child)
         {
-
-            System.Windows.Input.Keyboard.ClearFocus();
+            cell_elem.Children.Clear();
+            if (child != null)
+            {
+                cell_elem.Children.Add(child);
+            }
+        }
+        private void StackPanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
             if (end)
             {
                 return;
             }
-            var button = (Button)sender;
-            var cell_point = GetCellPoint(button);
+            var cell_element = (StackPanel)sender;
+
+            var cell_point = GetCellPoint(cell_element);
             var result = mineboard.Open(cell_point.ColumnID, cell_point.RowID);
             if (result == OpenResult.BOMB)
             {
-                end = true;
 
-                // [TODO]              button.GetBindingExpression(Button.ContentProperty).UpdateTarget();
-                button.Content = "★";
+                cell_element.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ffffff");
+                ResetCellChild(cell_element, new Image
+                {
+                    Source = (BitmapImage)this.Resources["BombImage"],
+                    MaxWidth = 18,
+                    MaxHeight = 18,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                });
+                end = true;
                 var window = new BombMessageWindow();
                 window.Show();
             }
@@ -87,26 +92,38 @@ namespace Minebeginner
                     cwindow.Show();
                     end = true;
                 }
-                foreach (Button btn in DescendantButtons(datalistitems))
+                foreach (StackPanel sp in DescendantStackPanels(datalistitems))
                 {
-                    if (btn.Style == this.Resources["ClosedCellButtonStyle"])
+                    if (sp.Tag == null)
                     {
-                        var cp = GetCellPoint(btn);
-                        var cell = mineboard.GetCell(cp.ColumnID, cp.RowID);
-                        if (cell.Opened)
+                        continue;
+                    }
+                    var cp = GetCellPoint(sp);
+                    var cell = mineboard.GetCell(cp.ColumnID, cp.RowID);
+                    if (cell.Opened)
+                    {
+                        // [TODO] 新しく開いたか判定
+                        string[] colormap = { "#000000", "#000000", "#B36B00", "#14B2B2", "#B2A214", "#1423B2", "#B21473", "#14B223", "#B21414" };
+                        string color = colormap[cell.AroundBombs];
+                        string text = cell.AroundBombs <= 0 ? "" : cell.AroundBombs.ToString();
+
+                        ResetCellChild(sp, new TextBlock
                         {
-                            btn.Style = (Style)this.Resources["OpenedCellButtonStyle"];
-                            btn.Content = cell.AroundBombs <= 0 ? "" : cell.AroundBombs.ToString();
-                        }
+                            Text = text,
+                            Foreground = (SolidColorBrush)new BrushConverter().ConvertFrom(color),
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                        });
+                        sp.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ffffff");
                     }
                 }
             }
         }
 
-        public static List<Button> DescendantButtons(DependencyObject obj)
+        public static List<StackPanel> DescendantStackPanels(DependencyObject obj)
         {
             //http://blog.xin9le.net/entry/2013/10/29/222336
-            var l = new List<Button>();
+            var l = new List<StackPanel>();
             var count = VisualTreeHelper.GetChildrenCount(obj);
             for (int i = 0; i < count; i++)
             {
@@ -115,27 +132,27 @@ namespace Minebeginner
                 {
                     continue;
                 }
-                if (child is Button)
+                if (child is StackPanel)
                 {
-                    l.Add((Button)child);
+                    l.Add((StackPanel)child);
                 }
                 var child_count = VisualTreeHelper.GetChildrenCount(child);
                 if (child_count > 0)
                 {
-                    l = l.Concat(DescendantButtons(child)).ToList();
+                    l = l.Concat(DescendantStackPanels(child)).ToList();
                 }
             }
             return l;
         }
 
-        private void Button_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        private void StackPanel_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (end)
             {
                 return;
             }
-            var button = (Button)sender;
-            var cp = GetCellPoint(button);
+            var cell_element = (StackPanel)sender;
+            var cp = GetCellPoint(cell_element);
             mineboard.ReverseFlag(cp.ColumnID, cp.RowID);
 
             var cell = mineboard.GetCell(cp.ColumnID, cp.RowID);
@@ -143,21 +160,29 @@ namespace Minebeginner
             {
                 if (cell.HasFlag)
                 {
-                    button.Content = "■";
+                    ResetCellChild(cell_element, new Image
+                    {
+                        Source = (BitmapImage)this.Resources["FlagImage"],
+                        MaxWidth = 18,
+                        MaxHeight = 18,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                    });
                 }
                 else
                 {
-                    button.Content = "";
+                    ResetCellChild(cell_element, null);
                 }
             }
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
+            System.Windows.Input.Keyboard.ClearFocus();
             InitializeBoard();
         }
 
-        private CellPoint GetCellPoint(Button btn)
+        private CellPoint GetCellPoint(StackPanel btn)
         {
             var tag = btn.Tag;
             int[] columnid_rowid = tag.ToString().Split('/').Select(numstr => int.Parse(numstr)).ToArray();
@@ -170,6 +195,25 @@ namespace Minebeginner
                 RowID = row_id
             };
         }
-    }
 
+        private void StackPanel_MouseEnter(object sender, MouseEventArgs e)
+        {
+            StackPanel cell_element = (StackPanel)sender;
+            var cp = GetCellPoint(cell_element);
+            if (!mineboard.GetCell(cp.ColumnID, cp.RowID).Opened)
+            {
+                cell_element.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#aaaaaa");
+            }
+        }
+
+        private void StackPanel_MouseLeave(object sender, MouseEventArgs e)
+        {
+            StackPanel cell_element = (StackPanel)sender;
+            var cp = GetCellPoint(cell_element);
+            if (!mineboard.GetCell(cp.ColumnID, cp.RowID).Opened)
+            {
+                cell_element.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#777777");
+            }
+        }
+    }
 }

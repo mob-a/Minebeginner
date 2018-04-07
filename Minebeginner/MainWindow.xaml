@@ -5,42 +5,40 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Minebeginner"
         mc:Ignorable="d"
-  
-        Title="Minebeginner" >
+        ResizeMode="NoResize"
+        Title="Minebeginner">
     <Window.Resources>
         <Style TargetType="Grid" x:Key="MainBackground">
             <Setter Property="Background" Value="#EDE3F4"/>
         </Style>
-        <Style TargetType="Button" x:Key="ClosedCellButtonStyle">
-            <Setter Property="Background" Value="#24A293"/>
-        </Style>
-        <Style TargetType="Button" x:Key="OpenedCellButtonStyle">
-            <Setter Property="Background" Value="White"/>
-        </Style>
+        <BitmapImage x:Key="FlagImage" UriSource="Resources/flag.png" />
+        <BitmapImage x:Key="BombImage" UriSource="Resources/bomb.png" />
     </Window.Resources>
     <Grid Style="{StaticResource MainBackground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition />
         </Grid.RowDefinitions>
-        <Grid  Margin="10,10,10,10">
+        <Grid  Margin="10,10,10,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition />
+                <ColumnDefinition Width="50"/>
             </Grid.ColumnDefinitions>
-            <TextBlock x:Name="closed_cell_counter"  FontSize="20px" Background="White" Margin="0,0,10,0"/>
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <TextBlock Text="レベル：" FontSize="20px"/>
-                <ComboBox  x:Name="level_selection" SelectedValuePath="Content" SelectedIndex="0" Margin="0,0,10,0">
-                   <ComboBoxItem Content="LOW"/>
-                   <ComboBoxItem Content="HIGH"/>
+            <StackPanel  Orientation="Horizontal">
+                <Button Content="リセット" Click="ResetButton_Click" Grid.Column="1" MaxWidth="80" Margin="0,0,10,0" Height="26" Background="#eeeeee" BorderBrush="#aaaaaa" />
+                <ComboBox  x:Name="level_selection" SelectedValuePath="Content" SelectedIndex="0" VerticalAlignment="Center" Height="26" Background="#eeeeee" BorderBrush="#aaaaaa">
+                    <ComboBoxItem Content="Level:LOW"/>
+                    <ComboBoxItem Content="Level:HIGH"/>
                 </ComboBox>
             </StackPanel>
-            <Button Content="リセット" Click="Button_Click_1" Grid.Column="2" />
+            <Border Grid.Column="1" BorderThickness="1" BorderBrush="#aaaaaa">
+                <StackPanel Background="#ffffff">
+                    <TextBlock x:Name="closed_cell_counter" Margin="0,0,2,0" FontSize="20px" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
         </Grid>
-        <StackPanel Grid.Row="1"  Margin="10,10,10,10">
-            <ItemsControl x:Name="datalistitems" ItemsSource="{Binding Mode=OneWay, UpdateSourceTrigger=Explicit}" >
+        <StackPanel Grid.Row="1" Margin="10,10,10,10" Background="#aaaaaa">
+            <ItemsControl x:Name="datalistitems" ItemsSource="{Binding Mode=OneWay, UpdateSourceTrigger=Explicit}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal" />
@@ -48,17 +46,19 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding Cells}" >
+                        <ItemsControl ItemsSource="{Binding Cells}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Style="{DynamicResource ClosedCellButtonStyle}" Tag="{Binding ID}" Width="20" Height="20" Click="Button_Click" MouseRightButtonUp="Button_MouseRightButtonUp"/>
+                                    <StackPanel Tag="{Binding ID}" Width="20" Height="20" Margin="1,1,0,0" 
+                                                Background="#777777" 
+                                                MouseEnter="StackPanel_MouseEnter" MouseLeave="StackPanel_MouseLeave" 
+                                                MouseLeftButtonUp="StackPanel_MouseLeftButtonUp" MouseRightButtonUp="StackPanel_MouseRightButtonUp"/>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-
         </StackPanel>
     </Grid>
 </Window>

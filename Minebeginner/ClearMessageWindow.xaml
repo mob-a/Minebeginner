@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Minebeginner"
         mc:Ignorable="d"
         Title="Clear!" Height="100" Width="200">
-    <Grid>
+    <Grid Background="#EDE3F4">
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30">Clear!</TextBlock>
     </Grid>
 </Window>
